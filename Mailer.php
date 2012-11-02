@@ -9,6 +9,10 @@ use KumbiaPHP\Di\Container\ContainerInterface;
 
 require_once __DIR__ . '/phpmailer/class.phpmailer.php';
 
+/**
+ * Clase para envios de correo, que usa PHPMailer.
+ * @category servicios
+ */ 
 class Mailer
 {
 
@@ -24,6 +28,10 @@ class Mailer
      */
     protected $mailer;
 
+    /**
+     * Constructor de la clase
+     * @param ContainerInterface $container espera el servicio @container
+     */
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
@@ -32,22 +40,39 @@ class Mailer
         $this->mailer->CharSet = $container->getParameter('config.charset') ? : 'UTF-8';
     }
 
+    /**
+     * Establece el Asunto del Mensaje
+     * @param string $subject
+     * @return Mailer
+     */
     public function setSubject($subject)
     {
         $this->mailer->Subject = $subject;
         return $this;
     }
 
+    /**
+     * Agrega un destinatario de correo.
+     * @param string $recipient
+     * @param string $name
+     * @return Mailer
+     */
     public function addRecipient($recipient, $name = NULL)
     {
         $this->mailer->AddAddress($recipient, $name);
         return $this;
     }
 
+    /**
+     * Establece el mensaje del correo.
+     * @param string|Response $body
+     * @param boolean $isHtml = true
+     * @return Mailer
+     */
     public function setBody($body, $isHtml = true)
     {
         if ( $body instanceof Response ){
-            $isHtml = 0 === strpos('text/html', $body->headers->get('Content-Type'));
+            $isHtml = 0 === strpos($body->headers->get('Content-Type'), 'text/html');
             $body = $body->getContent();
         }
         $this->mailer->Body = $body;
@@ -56,6 +81,11 @@ class Mailer
         return $this;
     }
 
+    /**
+     * Realiza el envío del correo.
+     * @return boolean true en caso de existo.
+     * @throws MailException excepciones de la libreria PHPMailer
+     */ 
     public function send()
     {
         try{
@@ -70,11 +100,20 @@ class Mailer
         }
     }
 
+    /**
+     * Devuelve el error de la lib PHPMailer
+     * @return string
+     */ 
     public function getError()
     {
         return $this->mailer->ErrorInfo;
     }
 
+    /**
+     * Carga los parametros establecidos en el app/config/config.ini
+     * en la lib PHPMailer
+     * @throws InvalidArgumentException lanzada si falta algun parametro en el config
+     */ 
     protected function loadParameters()
     {
          switch (strtolower($this->container->getParameter('k2.mailer.transport'))) {
