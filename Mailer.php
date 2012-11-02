@@ -2,8 +2,9 @@
 
 namespace K2\Mail;
 
-use K2\Mail\Exception\MailException;
+use KumbiaPHP\Kernel\Response;
 use \InvalidArgumentException;
+use K2\Mail\Exception\MailException;
 use KumbiaPHP\Di\Container\ContainerInterface;
 
 require_once __DIR__ . '/phpmailer/class.phpmailer.php';
@@ -27,7 +28,6 @@ class Mailer
     {
         $this->container = $container;
         $this->mailer = new \PHPMailer(true);
-        $this->mailer->isHTML(true);
         $this->loadParameters();
         $this->mailer->CharSet = $container->getParameter('config.charset') ? : 'UTF-8';
     }
@@ -44,10 +44,15 @@ class Mailer
         return $this;
     }
 
-    public function setBody($body)
+    public function setBody($body, $isHtml = true)
     {
+        if ( $body instanceof Response ){
+            $isHtml = 0 === strpos('text/html', $body->headers->get('Content-Type'));
+            $body = $body->getContent();
+        }
         $this->mailer->Body = $body;
         $this->mailer->AltBody = stripslashes($body);
+        $this->mailer->isHTML($isHtml);            
         return $this;
     }
 
