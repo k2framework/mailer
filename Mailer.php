@@ -29,6 +29,7 @@ class Mailer
         $this->mailer = new \PHPMailer(true);
         $this->mailer->isHTML(true);
         $this->loadParameters();
+        $this->mailer->CharSet = $container->getParameter('config.charset') ? : 'UTF-8';
     }
 
     public function setSubject($subject)
@@ -74,7 +75,8 @@ class Mailer
          switch (strtolower($this->container->getParameter('k2.mailer.transport'))) {
             case 'smtp':
                 $this->mailer->isSMTP();
-                $this->mailer->SMTPAut = true;
+                $this->mailer->SMTPAuth = true;
+                $this->mailer->SMTPSecure = 'ssl';
                 if (null == $this->mailer->Port = $this->container
                         ->getParameter('k2.mailer.port'))
                 {
