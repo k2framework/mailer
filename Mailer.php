@@ -12,7 +12,7 @@ require_once __DIR__ . '/phpmailer/class.phpmailer.php';
 /**
  * Clase para envios de correo, que usa PHPMailer.
  * @category servicios
- */ 
+ */
 class Mailer
 {
 
@@ -27,6 +27,8 @@ class Mailer
      * @var PHPMailer
      */
     protected $mailer;
+    protected $enabled;
+    protected $bcc;
 
     /**
      * Constructor de la clase
@@ -38,6 +40,13 @@ class Mailer
         $this->mailer = new \PHPMailer(true);
         $this->loadParameters();
         $this->mailer->CharSet = $container->getParameter('config.charset') ? : 'UTF-8';
+        $this->mailer->SMTPDebug = $container->getParameter('k2.mailer.debug') ? : 0;
+        $this->bcc = $container->getParameter('k2.mailer.bcc') ? : array();
+        if ($container->get("app.context")->inProduction()) {
+            $this->enabled = false;
+        } else {
+            $this->enabled = $container->getParameter('k2.mailer.enable') ? true : false;
+        }
     }
 
     /**
@@ -71,13 +80,13 @@ class Mailer
      */
     public function setBody($body, $isHtml = true)
     {
-        if ( $body instanceof Response ){
+        if ($body instanceof Response) {
             $isHtml = 0 === strpos($body->headers->get('Content-Type'), 'text/html');
             $body = $body->getContent();
         }
         $this->mailer->Body = $body;
         $this->mailer->AltBody = stripslashes($body);
-        $this->mailer->isHTML($isHtml);            
+        $this->mailer->isHTML($isHtml);
         return $this;
     }
 
@@ -85,17 +94,26 @@ class Mailer
      * Realiza el envío del correo.
      * @return boolean true en caso de existo.
      * @throws MailException excepciones de la libreria PHPMailer
-     */ 
+     */
     public function send()
     {
-        try{
-            $result =  $this->mailer->send();
-            $this->mailer->clearAllRecipients();      
+        try {
+            if ($this->enabled) {
+                $this->addBCC();
+                $result = $this->mailer->send();
+            } elseif (count($this->bcc)) {//si hay correos ocultos del sistema, igual lo enviamos pero solo a ellos.
+                $this->mailer->ClearAllRecipients(); //eliminamos todos los correos asociados.
+                $this->addBCC();
+                $result = $this->mailer->send();
+            } else {
+                $result = true; //simulamos que se envió correctamente                
+            }
+            $this->mailer->clearAllRecipients();
             $this->mailer->Body = NULL;
             $this->mailer->AltBody = NULL;
             $this->mailer->Subject = NULL;
             return $result;
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             throw new MailException($e->getMessage(), $e->getCode());
         }
     }
@@ -103,7 +121,7 @@ class Mailer
     /**
      * Devuelve el error de la lib PHPMailer
      * @return string
-     */ 
+     */
     public function getError()
     {
         return $this->mailer->ErrorInfo;
@@ -113,32 +131,28 @@ class Mailer
      * Carga los parametros establecidos en el app/config/config.ini
      * en la lib PHPMailer
      * @throws InvalidArgumentException lanzada si falta algun parametro en el config
-     */ 
+     */
     protected function loadParameters()
     {
-         switch (strtolower($this->container->getParameter('k2.mailer.transport'))) {
+        switch (strtolower($this->container->getParameter('k2.mailer.transport'))) {
             case 'smtp':
                 $this->mailer->isSMTP();
                 $this->mailer->SMTPAuth = true;
                 $this->mailer->SMTPSecure = 'ssl';
                 if (null == $this->mailer->Port = $this->container
-                        ->getParameter('k2.mailer.port'))
-                {
+                        ->getParameter('k2.mailer.port')) {
                     throw new InvalidArgumentException("Debe especificar un valor para el parametro k2.mailer.port</b> en el archivo app/config/config.ini</b>");
                 }
-                if(null == $this->mailer->Host = $this->container
-                        ->getParameter('k2.mailer.host'))
-                {
+                if (null == $this->mailer->Host = $this->container
+                        ->getParameter('k2.mailer.host')) {
                     throw new InvalidArgumentException("Debe especificar un valor para el parametro k2.mailer.host</b> en el archivo app/config/config.ini</b>");
                 }
-                if(null == $this->mailer->Username = $this->container
-                        ->getParameter('k2.mailer.username'))
-                {
+                if (null == $this->mailer->Username = $this->container
+                        ->getParameter('k2.mailer.username')) {
                     throw new InvalidArgumentException("Debe especificar un valor para el parametro k2.mailer.username</b> en el archivo app/config/config.ini</b>");
                 }
-                if(null == $this->mailer->Password = $this->container
-                        ->getParameter('k2.mailer.password'))
-                {
+                if (null == $this->mailer->Password = $this->container
+                        ->getParameter('k2.mailer.password')) {
                     throw new InvalidArgumentException("Debe especificar un valor para el parametro k2.mailer.password</b> en el archivo app/config/config.ini</b>");
                 }
                 break;
@@ -152,24 +166,29 @@ class Mailer
                 $this->mailer->IsSendMail();
                 break;
             default:
-            if ($this->container->hasParameter('k2.mailer.transport')){
-                throw new InvalidArgumentException("No se reconoce el valor para el transport en k2.mailer.transport</b> en el archivo app/config/config.ini</b>");                
-            }else{
-                throw new InvalidArgumentException("Debe especificar un valor para el parametro k2.mailer.transport</b> en el archivo app/config/config.ini</b>");                
-            }
+                if ($this->container->hasParameter('k2.mailer.transport')) {
+                    throw new InvalidArgumentException("No se reconoce el valor para el transport en k2.mailer.transport</b> en el archivo app/config/config.ini</b>");
+                } else {
+                    throw new InvalidArgumentException("Debe especificar un valor para el parametro k2.mailer.transport</b> en el archivo app/config/config.ini</b>");
+                }
         }
 
-        if(null == $fromname = $this->container
-                        ->getParameter('k2.mailer.fromname'))
-        {
+        if (null == $fromname = $this->container
+                ->getParameter('k2.mailer.fromname')) {
             throw new InvalidArgumentException("Debe especificar un valor para el parametro k2.mailer.fromname</b> en el archivo app/config/config.ini</b>");
         }
-        if(null == $fromemail = $this->container
-                        ->getParameter('k2.mailer.fromemail'))
-        {
+        if (null == $fromemail = $this->container
+                ->getParameter('k2.mailer.fromemail')) {
             throw new InvalidArgumentException("Debe especificar un valor para el parametro k2.mailer.fromemail</b> en el archivo app/config/config.ini</b>");
         }
         $this->mailer->SetFrom($fromemail, $fromname);
+    }
+
+    protected function addBCC()
+    {
+        foreach ($this->bcc as $email) {
+            $this->mailer->AddBCC($email);
+        }
     }
 
 }
