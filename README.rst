@@ -29,6 +29,7 @@ En el archivo **app/config/config.ini** debemos crear la configuración de conex
     ;archivo app/config/config.ini
 
     [parameters]
+    k2.mailer.debug = On|Off ;opcional, habilita el módo debug para ve mensajes de error en desarrollo.
     k2.mailer.transport = smtp|sendmail|mail|qmail ;parametro obligarotio, debe tener alguna de esas opciones.
     k2.mailer.host = ;servidor de correo al que nos vamos a conectar ;opcional, solo si es smtp
     k2.mailer.port = ;puerto de la conexion al servidor de correo. ;opcional, solo si es smtp
