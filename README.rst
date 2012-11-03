@@ -9,14 +9,15 @@ Solo debemos descargar e instalar la lib en **vendor/K2/Mail** y registrarla en 
 
     //archivo app/AppKernel.php
 
-    protected function registerNamespaces()
+    protected function registerModules()
     {
-        return array(
-            'modules'   => __DIR__ . '/modules/',
-            'KumbiaPHP' => __DIR__ . '/../../vendor/kumbiaphp/kumbiaphp/src/',
+        $modules = array(
+            'KumbiaPHP'   => __DIR__ . '/../../vendor/kumbiaphp/kumbiaphp/src/',
+            'Index'       => __DIR__ . '/modules/',
             ...
             'K2/Mail'   => __DIR__ . '/../../vendor/',
         );
+        ...
     }
 
 Con esto ya hemos registrado el módulo en nuestra aplicación.
