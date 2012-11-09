@@ -1,6 +1,6 @@
 K2_Mail
 =======
-.. contents:: Módulo para el envio de correos en K2, ofrece una serie de métodos para configurar y enviar emails con el uso de la lib PHPMailer.
+Módulo para el envio de correos en K2, ofrece una serie de métodos para configurar y enviar emails con el uso de la lib PHPMailer.
 
 Instalacion
 -----------
