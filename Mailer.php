@@ -61,6 +61,15 @@ class Mailer
     }
 
     /**
+     * Devuelve el Asunto del mensaje
+     * @return string 
+     */
+    public function getSubject()
+    {
+        return $this->mailer->Subject;
+    }
+
+    /**
      * Agrega un destinatario de correo.
      * @param string $recipient
      * @param string $name
@@ -88,6 +97,15 @@ class Mailer
         $this->mailer->AltBody = stripslashes($body);
         $this->mailer->isHTML($isHtml);
         return $this;
+    }
+
+    /**
+     * Devuelve el cuerpo del mensaje.
+     * @return string 
+     */
+    public function getBody()
+    {
+        return $this->mailer->Body;
     }
 
     /**
