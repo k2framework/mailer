@@ -5,7 +5,7 @@ Módulo para el envio de correos en K2, ofrece una serie de métodos para config
 Instalacion
 -----------
 
-Solo debemos descargar e instalar la lib en **vendor/K2/Mail** y registrarla en el `AppKernel <https://github.com/manuelj555/k2/blob/master/doc/app_kernel.rst>`_:
+Solo debemos descargar e instalar la lib en **vendor/K2/Mail** y registrarla en el [AppKernel](https://github.com/manuelj555/k2/blob/master/doc/app_kernel.rst):
 
 ```php
 
