@@ -34,17 +34,17 @@ En el archivo **app/config/config.ini** debemos crear la configuración de conex
 
 ;archivo app/config/config.ini
 
-[parameters]
-k2.mailer.debug = On|Off ;opcional, habilita el módo debug para ve mensajes de error en desarrollo.
-k2.mailer.transport = smtp|sendmail|mail|qmail ;parametro obligarotio, debe tener alguna de esas opciones.
-k2.mailer.host = ;servidor de correo al que nos vamos a conectar ;opcional, solo si es smtp
-k2.mailer.port = ;puerto de la conexion al servidor de correo. ;opcional, solo si es smtp
-k2.mailer.fromname = Nombre del Remitente ;Obligatorio
-k2.mailer.fromemail = correo@dominio.com ;correo del remitente, Obligatorio
-k2.mailer.username = nombre de usuario ;opcional, solo si es smtp
-k2.mailer.password = clave de usuario ;opcional, solo si es smtp
-k2.mailer.enable = On ;indica si se envia ó no el correo, ideal para pruebas sin envio de correo. Opcional, On por defecto
-k2.mailer.bcc[] = correo_oculto@dominio.com ;dir de correo a la que le llegan todos los correos enviados. Opcional
+[k2_mailer]
+debug = On|Off ;opcional, habilita el módo debug para ve mensajes de error en desarrollo.
+transport = smtp|sendmail|mail|qmail ;parametro obligarotio, debe tener alguna de esas opciones.
+host = ;servidor de correo al que nos vamos a conectar ;opcional, solo si es smtp
+port = ;puerto de la conexion al servidor de correo. ;opcional, solo si es smtp
+fromname = Nombre del Remitente ;Obligatorio
+fromemail = correo@dominio.com ;correo del remitente, Obligatorio
+username = nombre de usuario ;opcional, solo si es smtp
+password = clave de usuario ;opcional, solo si es smtp
+enable = On ;indica si se envia ó no el correo, ideal para pruebas sin envio de correo. Opcional, On por defecto
+bcc[] = correo_oculto@dominio.com ;dir de correo a la que le llegan todos los correos enviados. Opcional
 ```
 
 Con esto ya podremos usar el servicio de envio de correos.
