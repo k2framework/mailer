@@ -2,10 +2,10 @@
 
 namespace K2\Mail;
 
-use KumbiaPHP\Kernel\Response;
+use K2\Kernel\Response;
 use \InvalidArgumentException;
 use K2\Mail\Exception\MailException;
-use KumbiaPHP\Di\Container\ContainerInterface;
+use K2\Di\Container\ContainerInterface;
 use K2\EmailTemplate\Template\TemplateInterface;
 
 require_once __DIR__ . '/phpmailer/class.phpmailer.php';
