@@ -5,22 +5,37 @@ Módulo para el envio de correos en K2, ofrece una serie de métodos para config
 Instalacion
 -----------
 
-Solo debemos descargar e instalar la lib en **vendor/K2/Mail** y registrarla en el [AppKernel](https://github.com/manuelj555/k2/blob/master/doc/app_kernel.rst):
+la instalación más sencilla es mediante composer, agregar el paquete al composer.json del proyecto:
+
+.. code-block:: json
+
+    {
+        "require" : {
+            "k2/mailer": "dev-master"
+        }
+    }
+                        
+                        
+Ejecutar el comando:
+
+::
+    
+    composer install
+    
+    
+Luego de tener los archivos descargados correctamente se debe agregar el módulo en el app/config/modules.php:
 
 ```php
 
-//archivo app/AppKernel.php
+<?php //archivo app/config/modules.php
 
-protected function registerModules()
-{
-    $modules = array(
-        'KumbiaPHP'   => __DIR__ . '/../../vendor/kumbiaphp/kumbiaphp/src/',
-        'Index'       => __DIR__ . '/modules/',
-        ...
-        'K2/Mail'   => __DIR__ . '/../../vendor/',
-    );
-    ...
-}
+/* * *****************************************************************
+ * Iinstalación de módulos
+ */
+App::modules(array(
+    '/' => include APP_PATH . '/modules/Index/config.php',
+    include composerPath('k2/mailer', 'K2/Mailer'),
+));
 ```
 
 Con esto ya hemos registrado el módulo en nuestra aplicación.
@@ -36,7 +51,7 @@ En el archivo **app/config/config.ini** debemos crear la configuración de conex
 
 [k2_mailer]
 debug = On|Off ;opcional, habilita el módo debug para ve mensajes de error en desarrollo.
-transport = smtp|sendmail|mail|qmail ;parametro obligarotio, debe tener alguna de esas opciones.
+transport = smtp|sendmail|mail|qmail|gmail ;parametro obligarotio, debe tener alguna de esas opciones.
 host = ;servidor de correo al que nos vamos a conectar ;opcional, solo si es smtp
 port = ;puerto de la conexion al servidor de correo. ;opcional, solo si es smtp
 fromname = Nombre del Remitente ;Obligatorio
@@ -57,38 +72,42 @@ Ejemplo de Uso:
 
 namespace Registro\Controller;
 
-use KumbiaPHP\Kernel\Controller\Controller;
-use K2\Mail\Exception\MailException;
+use K2\Kernel\App;
+use K2\Mailer\Mailer;
+use K2\Kernel\Controller\Controller;
+use K2\Mailer\Exception\MailerException;
 
 class RegistroController extends Controller
 {
-
-    public function correoBasico()
+    protected function send(Mailer $mailer)
     {
-
-        $mailer = $this->get("k2_mailer")
-                            ->setSubject("Este es el asunto del correo...!!!")
-                            ->setBody("<h2>Título mensaje</h2><p>Contenido del mensaje...</p>")
-                            ->addRecipient('correo@gmail.com');
         try{
             if ( $mailer->send() )
             {
-                $this->get("flash")->success("Se envió el correo exitosamente...!!!");
+                App::get("flash")->success("Se envió el correo exitosamente...!!!");
             }else{
-                $this->get("flash")->warning("Nó se pudo enviar el correo");
+                App::get("flash")->warning("Nó se pudo enviar el correo");
             }
 
-        }catch(MailException $e){
-            $this->get("flash")->error("Error al enviar el correo: " . $e->getMessage());
+        }catch(MailerException $e){
+            App::get("flash")->error("Error al enviar el correo: " . $e->getMessage());
         }
     }
 
-    public function enviarCorreo2($usuarioId)
+    public function correoBasico_action()
     {
-        //verificamos la existencia del usuario en la BD
-        if (!$usuario = Usuarios::findByPK((int) $usuarioId)){
-            $this->renderNotFound("No existe el usuario con id $usuarioId");
-        }
+
+        $mailer = App::get("k2_mailer")
+                            ->setSubject("Este es el asunto del correo...!!!")
+                            ->setBody("<h2>Título mensaje</h2><p>Contenido del mensaje...</p>")
+                            ->addRecipient('correo@gmail.com');
+        
+        $this->send($mailer);
+    }
+
+    public function enviarCorreo2_action($usuarioId)
+    {
+         $usuario = Usuarios::findByID($usuarioId);
 
         //obtenemos el contenido de la url email_templates/usuarios/registro/{id}
         //el cual es el html que se enviará por correo.
@@ -96,24 +115,35 @@ class RegistroController extends Controller
         $response = $this->getRouter()->forward("email_templates/usuarios/registro/$usuarioId");
 
         if ( 200 === $response->getStatus() ){ //si la respuesta es exitosa.
-            $email = $this->get("k2_mailer")
+            $email = App::get("k2_mailer")
                                 ->setSubject("Registro Exitoso")
                                 ->setBody($response); //tambien puede recibir un objeto Response
 
             $email->addRecipient($usuario->email, $usuario->nombres);
 
-            try{
-                if ( $email->send() ){
-                    $this->get("flash")->success("El correo fué enviado con éxito...!!!");
-                }else{ //si hubo un error.
-                    $this->get("flash")->error("No se Pudo enviar el Correo...!!!");
-                }
-            }catch(MailException $e){
-                $this->get("flash")->error("Error al enviar el correo: " . $e->getMessage());
-            }
+            $this->send($mailer);
+            
         }else{ //si hubo un error.
-            $this->get("flash")->error("No se Pudo enviar el Correo...!!!");
+            App::get("flash")->error("No se Pudo enviar el Correo...!!!");
         }
+    }
+    
+    public function usandoTwig_action($usuarioId)
+    {
+         $usuario = Usuarios::findByID($usuarioId);
+         
+         //acá se hace uso del método fromView de la clase Mailer, este método busca una vista twig y carga los
+         //bloques subject y html para cargar el asunto y el cuerpo del mensaje para el correo respectivamente.
+         //el segundo parametro del método fromView son las variables que se pasan a la vista.
+         
+         $mailer = App::get("k2_mailer")
+                            ->addRecipient($usuario->email, $usuario->nombres)
+                            ->fromView("@Modulo/vista.twig", array(
+                                'usuario' => $usuario,
+                            ));
+        
+        $this->send($mailer);
+         
     }
 }
 ```
