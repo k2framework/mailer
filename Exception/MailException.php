@@ -1,6 +1,6 @@
 <?php
 
-namespace K2\Mail\Exception;
+namespace K2\Mailer\Exception;
 
 use \Exception;
 
