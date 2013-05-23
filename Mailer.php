@@ -1,11 +1,11 @@
 <?php
 
-namespace K2\Mail;
+namespace K2\Mailer;
 
 use K2\Kernel\Response;
 use \InvalidArgumentException;
-use K2\Mail\Exception\MailException;
-use K2\Di\Container\ContainerInterface;
+use K2\Di\Container\Container;
+use K2\Mailer\Exception\MailException;
 use K2\EmailTemplate\Template\TemplateInterface;
 
 require_once __DIR__ . '/phpmailer/class.phpmailer.php';
@@ -19,7 +19,7 @@ class Mailer
 
     /**
      * 
-     * @var ContainerInterface
+     * @var Container
      */
     protected $container;
 
@@ -39,9 +39,9 @@ class Mailer
 
     /**
      * Constructor de la clase
-     * @param ContainerInterface $container espera el servicio @container
+     * @param Container $container espera el servicio @container
      */
-    public function __construct(ContainerInterface $container)
+    public function __construct(Container $container)
     {
         $this->container = $container;
         $this->config = $container->getParameter('k2_mailer');
