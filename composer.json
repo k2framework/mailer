@@ -1,0 +1,21 @@
+{
+    "name": "k2/mail",
+    "type": "library",
+    "description": "Libreria para envios de correo usando K2Framework",
+    "license": "BSD",
+    "keywords": ["library"],
+    "authors": [
+        {
+            "name": "Manuel Aguirre",
+            "email": "programador.manuel@gmail.com"
+        }
+    ],
+    "require": {
+    },
+    "autoload": {
+        "psr-0":{ 
+            "K2\\Mail\\": ""
+        }
+    },
+    "target-dir": "K2/Mail"
+}
