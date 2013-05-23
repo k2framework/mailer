@@ -7,7 +7,7 @@ use \Exception;
 /**
 * 
 */
-class MailException extends Exception
+class MailerException extends Exception
 {
 	
 }

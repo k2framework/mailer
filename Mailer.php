@@ -5,7 +5,7 @@ namespace K2\Mailer;
 use K2\Kernel\Response;
 use \InvalidArgumentException;
 use K2\Di\Container\Container;
-use K2\Mailer\Exception\MailException;
+use K2\Mailer\Exception\MailerException;
 use K2\EmailTemplate\Template\TemplateInterface;
 
 require_once __DIR__ . '/phpmailer/class.phpmailer.php';
@@ -50,7 +50,7 @@ class Mailer
         $this->mailer->CharSet = isset($this->config['charset']) ? $this->config['charset'] : 'UTF-8';
         $this->mailer->SMTPDebug = isset($this->config['debug']) ? $this->config['debug'] : 0;
         $this->bcc = isset($this->config['bcc']) ? $this->config['bcc'] : array();
-        if ($container->get("app.context")->inProduction()) {
+        if (PRODUCTION) {
             $this->enabled = true;
         } else {
             $this->enabled = isset($this->config['enable']) ? $this->config['enable'] : true;
@@ -140,21 +140,26 @@ class Mailer
             $this->mailer->Subject = NULL;
             return $result;
         } catch (\Exception $e) {
-            throw new MailException($e->getMessage(), $e->getCode());
+            throw new MailerException($e->getMessage(), $e->getCode());
         }
     }
 
     /**
-     * Establece los atributos de la clase K2\EmailTemplate\Template\TemplateInterface
-     * cuando se usa dicho módulo.
-     * @param TemplateInterface $template
-     * @return \K2\Mail\Mailer 
+     * Establece el body y el subject a partir de una vista twig
+     * @param string $view
+     * @param array $parameters
+     * @return \K2\Mailer\Mailer
      */
-    public function setTemplate(TemplateInterface $template)
+    public function fromView($view, array $parameters = array())
     {
-        $this->setSubject($template->getSubject())
-                ->setBody($template->getContent());
-        return $this;
+        $template = $this->container
+                ->get('twig')
+                ->loadTemplate($view);
+
+        $subject = $template->renderBlock('subject', $parameters);
+        $html = $template->renderBlock('html', $parameters);
+
+        return $this->setSubject($subject)->setBody($html);
     }
 
     /**
@@ -186,6 +191,20 @@ class Mailer
                     throw new InvalidArgumentException("Debe especificar un valor para el parametro host en el archivo app/config/config.ini en la sección [k2_mailer]");
                 }
                 $this->mailer->Host = $this->config['host'];
+                if (!isset($this->config['username'])) {
+                    throw new InvalidArgumentException("Debe especificar un valor para el parametro username en el archivo app/config/config.ini en la sección [k2_mailer]");
+                }
+                $this->mailer->Username = $this->config['username'];
+                if (!isset($this->config['password'])) {
+                    throw new InvalidArgumentException("Debe especificar un valor para el parametro password en el archivo app/config/config.ini en la sección [k2_mailer]");
+                }
+                $this->mailer->Password = $this->config['password'];
+                break;
+            case 'gmail':
+                $this->mailer->isSMTP();
+                $this->mailer->SMTPAuth = true;
+                $this->mailer->Port = '465';
+                $this->mailer->Host = 'ssl://smtp.gmail.com';
                 if (!isset($this->config['username'])) {
                     throw new InvalidArgumentException("Debe especificar un valor para el parametro username en el archivo app/config/config.ini en la sección [k2_mailer]");
                 }
