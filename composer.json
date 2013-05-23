@@ -1,5 +1,5 @@
 {
-    "name": "k2/mail",
+    "name": "k2/mailer",
     "type": "library",
     "description": "Libreria para envios de correo usando K2Framework",
     "license": "BSD",
@@ -14,8 +14,8 @@
     },
     "autoload": {
         "psr-0":{ 
-            "K2\\Mail\\": ""
+            "K2\\Mailer\\": ""
         }
     },
-    "target-dir": "K2/Mail"
+    "target-dir": "K2/Mailer"
 }
